@@ -223,14 +223,6 @@ El agregador consume y combina los siguientes modelos:
 4. Push al branch (`git push origin feature/AmazingFeature`)
 5. Abrir Pull Request
 
-## 📄 Licencia
-
-Distribuido bajo la Licencia MIT. Ver `LICENSE` para más información.
-
-## 👥 Autores
-
-- **Tu Nombre** - *Desarrollo inicial*
-
 ## 📞 Soporte
 
 Si encuentras algún problema, por favor abre un issue en el repositorio del proyecto.
