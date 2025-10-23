@@ -6,10 +6,10 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Configuración con los puertos específicos
-MS_INSCRIPCIONES = os.getenv('MS_INSCRIPCIONES', 'http://localhost:3000')
-MS_CURSOS = os.getenv('MS_CURSOS', 'http://localhost:8010')
-MS_ESTUDIANTES = os.getenv('MS_ESTUDIANTES', 'http://localhost:8080')
+# Configuración con los endpoints del LB
+MS_INSCRIPCIONES = os.getenv('MS_INSCRIPCIONES', 'http://LB-Microservicios-34846879.us-east-1.elb.amazonaws.com/inscripciones')
+MS_CURSOS = os.getenv('MS_CURSOS', 'http://LB-Microservicios-34846879.us-east-1.elb.amazonaws.com/cursos')
+MS_ESTUDIANTES = os.getenv('MS_ESTUDIANTES', 'http://LB-Microservicios-34846879.us-east-1.elb.amazonaws.com/estudiantes')
 
 # Configuración de Swagger con Flask-RESTX
 api = Api(app, 
@@ -96,9 +96,9 @@ class DashboardEstadisticas(Resource):
         """Estadísticas generales del sistema"""
         try:
             # Obtener datos de todos los microservicios
-            estudiantes_resp = hacer_request(f"{MS_ESTUDIANTES}/estudiantes")
-            cursos_resp = hacer_request(f"{MS_CURSOS}/cursos")
-            inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}/inscripciones")
+            estudiantes_resp = hacer_request(f"{MS_ESTUDIANTES}")
+            cursos_resp = hacer_request(f"{MS_CURSOS}")
+            inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}")
             
             # Procesar respuesta paginada de estudiantes
             if isinstance(estudiantes_resp, dict) and 'content' in estudiantes_resp:
@@ -106,14 +106,23 @@ class DashboardEstadisticas(Resource):
             else:
                 total_estudiantes = len(estudiantes_resp) if isinstance(estudiantes_resp, list) else 0
             
-            total_cursos = len(cursos_resp) if isinstance(cursos_resp, list) else 0
-            total_inscripciones = len(inscripciones_resp) if isinstance(inscripciones_resp, list) else 0
+            # Procesar cursos (paginación)
+            if isinstance(cursos_resp, dict) and 'content' in cursos_resp:
+                total_cursos = cursos_resp.get('totalElements', 0)
+            else:
+                total_cursos = len(cursos_resp) if isinstance(cursos_resp, list) else 0
             
+            # Procesar inscripciones (paginación)
+            if isinstance(inscripciones_resp, dict) and 'content' in inscripciones_resp:
+                total_inscripciones = inscripciones_resp.get('totalElements', 0)
+                inscripciones_list = inscripciones_resp.get('content', [])
+            else:
+                total_inscripciones = len(inscripciones_resp) if isinstance(inscripciones_resp, list) else 0
+                inscripciones_list = inscripciones_resp if isinstance(inscripciones_resp, list) else []
+
             # Calcular inscripciones activas
-            inscripciones_activas = 0
-            if isinstance(inscripciones_resp, list):
-                inscripciones_activas = sum(1 for insc in inscripciones_resp 
-                                          if isinstance(insc, dict) and insc.get('estado') == 'activa')
+            inscripciones_activas = sum(1 for insc in inscripciones_list 
+                                        if isinstance(insc, dict) and insc.get('estado') == 'activa')
             
             return {
                 'total_estudiantes': total_estudiantes,
