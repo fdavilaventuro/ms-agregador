@@ -108,7 +108,7 @@ class DashboardEstadisticas(Resource):
            # ---------------- CURSOS ----------------
             total_cursos = 0
             page = 1  # empieza en 1
-            size = 100
+            size = 1000
 
             while True:
                 url = f"{MS_CURSOS}?page={page}&size={size}"
