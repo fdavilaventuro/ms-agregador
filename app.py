@@ -107,22 +107,35 @@ class DashboardEstadisticas(Resource):
 
            # ---------------- CURSOS ----------------
             total_cursos = 0
-            page = 1
+            page = 1  # empieza en 1
             size = 100
 
             while True:
-                resp = hacer_request(f"{MS_CURSOS}/cursos?page={page}&size={size}")
-                # si hubo error en la request, salir del loop
+                url = f"{MS_CURSOS}/cursos?page={page}&size={size}"
+                print(f"[DEBUG] Pidiendo {url}")
+                resp = hacer_request(url)
+
                 if isinstance(resp, dict) and 'error' in resp:
+                    print(f"[ERROR] Request falló: {resp['error']}")
                     break
-                # la respuesta es lista directamente
-                cursos = resp if isinstance(resp, list) else []
-                if not cursos:
+
+                if not isinstance(resp, list):
+                    print(f"[WARN] Respuesta inesperada: {resp}")
                     break
-                total_cursos += len(cursos)
-                if len(cursos) < size:
-                    break  # última página
+
+                if not resp:
+                    print("[INFO] Página vacía, fin de cursos")
+                    break
+
+                total_cursos += len(resp)
+                print(f"[INFO] Página {page}: {len(resp)} cursos, total acumulado: {total_cursos}")
+
+                if len(resp) < size:
+                    print("[INFO] Última página")
+                    break
+
                 page += 1
+
 
             # ---------------- INSCRIPCIONES ----------------
             inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}")
