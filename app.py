@@ -84,7 +84,8 @@ def hacer_request(url, method='GET', data=None):
         response.raise_for_status()
         return response.json() if response.content else {}
     except requests.exceptions.RequestException as e:
-        return {'error': f'Error conectando con el servicio: {str(e)}'}, 500
+        # ⚠️ siempre devuelve un dict, nunca una tupla
+        return {'error': f'Error conectando con el servicio: {str(e)}'}
 
 ### ENDPOINTS DEL AGREGADOR ###
 
@@ -93,36 +94,40 @@ class DashboardEstadisticas(Resource):
     @api.doc(description='Obtener estadísticas generales del sistema')
     @api.response(200, 'Estadísticas obtenidas correctamente')
     def get(self):
+        """Estadísticas generales del sistema"""
         try:
             # ---------------- ESTUDIANTES ----------------
             estudiantes_resp = hacer_request(f"{MS_ESTUDIANTES}")
-            if isinstance(estudiantes_resp, dict) and 'content' in estudiantes_resp:
+            if 'error' in estudiantes_resp:
+                total_estudiantes = 0
+            elif isinstance(estudiantes_resp, dict) and 'content' in estudiantes_resp:
                 total_estudiantes = estudiantes_resp.get('totalElements', 0)
             else:
                 total_estudiantes = len(estudiantes_resp) if isinstance(estudiantes_resp, list) else 0
 
             # ---------------- CURSOS ----------------
             total_cursos = 0
-            cursos_list = []
             page = 1
             size = 100
             while True:
                 resp = hacer_request(f"{MS_CURSOS}/cursos?page={page}&size={size}")
-                if not resp:
+                if 'error' in resp:
                     break
                 cursos = resp if isinstance(resp, list) else resp.get('content', [])
                 if not cursos:
                     break
                 total_cursos += len(cursos)
-                cursos_list.extend(cursos)
                 if len(cursos) < size:
                     break  # última página
                 page += 1
 
             # ---------------- INSCRIPCIONES ----------------
             inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}")
-            if isinstance(inscripciones_resp, dict) and 'content' in inscripciones_resp:
-                total_inscripciones = inscripciones_resp.get('totalElements', 0)
+            if 'error' in inscripciones_resp:
+                total_inscripciones = 0
+                inscripciones_list = []
+            elif isinstance(inscripciones_resp, dict) and 'content' in inscripciones_resp:
+                total_inscripciones = len(inscripciones_resp.get('content', []))
                 inscripciones_list = inscripciones_resp.get('content', [])
             else:
                 total_inscripciones = len(inscripciones_resp) if isinstance(inscripciones_resp, list) else 0
