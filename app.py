@@ -113,7 +113,8 @@ class DashboardEstadisticas(Resource):
                 resp = hacer_request(f"{MS_CURSOS}/cursos?page={page}&size={size}")
                 if 'error' in resp:
                     break
-                cursos = resp if isinstance(resp, list) else resp.get('content', [])
+                # Tu MS devuelve una lista directamente
+                cursos = resp if isinstance(resp, list) else []
                 if not cursos:
                     break
                 total_cursos += len(cursos)
