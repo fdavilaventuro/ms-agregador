@@ -105,15 +105,17 @@ class DashboardEstadisticas(Resource):
             else:
                 total_estudiantes = len(estudiantes_resp) if isinstance(estudiantes_resp, list) else 0
 
-            # ---------------- CURSOS ----------------
+           # ---------------- CURSOS ----------------
             total_cursos = 0
             page = 1
             size = 100
+
             while True:
                 resp = hacer_request(f"{MS_CURSOS}/cursos?page={page}&size={size}")
-                if 'error' in resp:
+                # si hubo error en la request, salir del loop
+                if isinstance(resp, dict) and 'error' in resp:
                     break
-                # Tu MS devuelve una lista directamente
+                # la respuesta es lista directamente
                 cursos = resp if isinstance(resp, list) else []
                 if not cursos:
                     break
