@@ -111,7 +111,7 @@ class DashboardEstadisticas(Resource):
             size = 100
 
             while True:
-                url = f"{MS_CURSOS}/cursos?page={page}&size={size}"
+                url = f"{MS_CURSOS}?page={page}&size={size}"
                 print(f"[DEBUG] Pidiendo {url}")
                 resp = hacer_request(url)
 
