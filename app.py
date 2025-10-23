@@ -173,12 +173,12 @@ class EstudianteDetallesCompletos(Resource):
         """Detalles completos de un estudiante con cursos inscritos"""
         try:
             # Obtener datos del estudiante
-            estudiante = hacer_request(f"{MS_ESTUDIANTES}/estudiantes/{estudiante_id}")
+            estudiante = hacer_request(f"{MS_ESTUDIANTES}/{estudiante_id}")
             if isinstance(estudiante, tuple):
                 return estudiante
             
             # Obtener todas las inscripciones
-            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}/inscripciones")
+            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}")
             if isinstance(inscripciones, tuple):
                 return inscripciones
             
@@ -193,7 +193,7 @@ class EstudianteDetallesCompletos(Resource):
             for insc in inscripciones_estudiante:
                 curso_id = insc.get('cursoId')
                 if curso_id:
-                    curso = hacer_request(f"{MS_CURSOS}/cursos/{curso_id}")
+                    curso = hacer_request(f"{MS_CURSOS}/{curso_id}")
                     if not isinstance(curso, tuple):
                         curso_detallado = {
                             **curso,
@@ -225,18 +225,18 @@ class CursoInformacionCompleta(Resource):
         """Información completa de un curso"""
         try:
             # Obtener datos del curso
-            curso = hacer_request(f"{MS_CURSOS}/cursos/{curso_id}")
+            curso = hacer_request(f"{MS_CURSOS}/{curso_id}")
             if isinstance(curso, tuple):
                 return curso
             
             # Obtener lecciones del curso
-            lecciones = hacer_request(f"{MS_CURSOS}/cursos/{curso_id}/lecciones")
+            lecciones = hacer_request(f"{MS_CURSOS}/{curso_id}/lecciones")
             if isinstance(lecciones, tuple):
                 lecciones = []
             
             # Obtener todas las inscripciones y estudiantes
-            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}/inscripciones")
-            estudiantes_resp = hacer_request(f"{MS_ESTUDIANTES}/estudiantes")
+            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}")
+            estudiantes_resp = hacer_request(f"{MS_ESTUDIANTES}")
             
             if isinstance(inscripciones, tuple):
                 inscripciones = []
@@ -293,7 +293,7 @@ class EstadisticasProgreso(Resource):
     def get(self):
         """Estadísticas de progreso general"""
         try:
-            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}/inscripciones")
+            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}")
             if isinstance(inscripciones, tuple):
                 return inscripciones
             
@@ -349,8 +349,8 @@ class CursosPopulares(Resource):
     def get(self):
         """Cursos más populares por número de inscripciones"""
         try:
-            cursos = hacer_request(f"{MS_CURSOS}/cursos")
-            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}/inscripciones")
+            cursos = hacer_request(f"{MS_CURSOS}")
+            inscripciones = hacer_request(f"{MS_INSCRIPCIONES}")
             
             if isinstance(cursos, tuple):
                 return cursos
@@ -398,18 +398,18 @@ class HealthCheck(Resource):
         
         # Verificar salud de cada microservicio
         try:
-            servicios['ms_inscripciones'] = hacer_request(f"{MS_INSCRIPCIONES}/health")
+            servicios['ms_inscripciones'] = hacer_request(f"{MS_INSCRIPCIONES}")
         except:
             servicios['ms_inscripciones'] = 'error'
         
         try:
-            servicios['ms_cursos'] = hacer_request(f"{MS_CURSOS}/health")
+            servicios['ms_cursos'] = hacer_request(f"{MS_CURSOS}")
         except:
             servicios['ms_cursos'] = 'error'
         
         try:
             # Si estudiantes no tiene health endpoint, usamos un endpoint básico
-            servicios['ms_estudiantes'] = hacer_request(f"{MS_ESTUDIANTES}/estudiantes")
+            servicios['ms_estudiantes'] = hacer_request(f"{MS_ESTUDIANTES}")
             if servicios['ms_estudiantes'] and not isinstance(servicios['ms_estudiantes'], tuple):
                 servicios['ms_estudiantes'] = 'healthy'
             else:
