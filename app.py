@@ -93,26 +93,34 @@ class DashboardEstadisticas(Resource):
     @api.doc(description='Obtener estadísticas generales del sistema')
     @api.response(200, 'Estadísticas obtenidas correctamente')
     def get(self):
-        """Estadísticas generales del sistema"""
         try:
-            # Obtener datos de todos los microservicios
+            # ---------------- ESTUDIANTES ----------------
             estudiantes_resp = hacer_request(f"{MS_ESTUDIANTES}")
-            cursos_resp = hacer_request(f"{MS_CURSOS}")
-            inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}")
-            
-            # Procesar respuesta paginada de estudiantes
             if isinstance(estudiantes_resp, dict) and 'content' in estudiantes_resp:
                 total_estudiantes = estudiantes_resp.get('totalElements', 0)
             else:
                 total_estudiantes = len(estudiantes_resp) if isinstance(estudiantes_resp, list) else 0
-            
-            # Procesar cursos (paginación)
-            if isinstance(cursos_resp, dict) and 'content' in cursos_resp:
-                total_cursos = cursos_resp.get('totalElements', 0)
-            else:
-                total_cursos = len(cursos_resp) if isinstance(cursos_resp, list) else 0
-            
-            # Procesar inscripciones (paginación)
+
+            # ---------------- CURSOS ----------------
+            total_cursos = 0
+            cursos_list = []
+            page = 1
+            size = 100
+            while True:
+                resp = hacer_request(f"{MS_CURSOS}/cursos?page={page}&size={size}")
+                if not resp:
+                    break
+                cursos = resp if isinstance(resp, list) else resp.get('content', [])
+                if not cursos:
+                    break
+                total_cursos += len(cursos)
+                cursos_list.extend(cursos)
+                if len(cursos) < size:
+                    break  # última página
+                page += 1
+
+            # ---------------- INSCRIPCIONES ----------------
+            inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}")
             if isinstance(inscripciones_resp, dict) and 'content' in inscripciones_resp:
                 total_inscripciones = inscripciones_resp.get('totalElements', 0)
                 inscripciones_list = inscripciones_resp.get('content', [])
@@ -120,10 +128,10 @@ class DashboardEstadisticas(Resource):
                 total_inscripciones = len(inscripciones_resp) if isinstance(inscripciones_resp, list) else 0
                 inscripciones_list = inscripciones_resp if isinstance(inscripciones_resp, list) else []
 
-            # Calcular inscripciones activas
+            # ---------------- INSCRIPCIONES ACTIVAS ----------------
             inscripciones_activas = sum(1 for insc in inscripciones_list 
                                         if isinstance(insc, dict) and insc.get('estado') == 'activa')
-            
+
             return {
                 'total_estudiantes': total_estudiantes,
                 'total_cursos': total_cursos,
@@ -131,6 +139,7 @@ class DashboardEstadisticas(Resource):
                 'inscripciones_activas': inscripciones_activas,
                 'status': 'success'
             }
+
         except Exception as e:
             return {'error': str(e), 'status': 'error'}, 500
 
