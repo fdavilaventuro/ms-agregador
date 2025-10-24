@@ -105,17 +105,15 @@ class DashboardEstadisticas(Resource):
             else:
                 total_estudiantes = len(estudiantes_resp) if isinstance(estudiantes_resp, list) else 0
 
-           # ---------------- CURSOS ----------------
+            # ---------------- CURSOS ----------------
             try:
-                cursos_count_resp = hacer_request(f"{MS_CURSOS}/count")
-                if 'error' in cursos_count_resp:
-                    total_cursos = 0
+                cursos_resp = hacer_request(f"{MS_CURSOS}/count")
+                if isinstance(cursos_resp, dict) and 'count' in cursos_resp:
+                    total_cursos = cursos_resp['count']
                 else:
-                    total_cursos = cursos_count_resp.get('total', 0)
-            except Exception as e:
-                print(f"[ERROR] No se pudo obtener total de cursos: {e}")
+                    total_cursos = 0
+            except:
                 total_cursos = 0
-
 
             # ---------------- INSCRIPCIONES ----------------
             inscripciones_resp = hacer_request(f"{MS_INSCRIPCIONES}")
